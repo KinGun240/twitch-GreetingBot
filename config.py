@@ -10,15 +10,15 @@ BOT_PREFIX = '!'    # この文字を作成したコマンドの頭に付ける�
 # Blue, Coral, DodgerBlue, SpringGreen, YellowGreen, Green, OrangeRed, Red,
 # GoldenRod, HotPink, CadetBlue, SeaGreen, Chocolate, BlueViolet, and Firebrick
 TextColor = 'Green'
-# コメントリストファイルの保存の有無
-IsSaveCommentsFile = False
-# コメント時の効果音の有無
-IsPlaySoundComment = True
-# コメント時の効果音、WAVかMP3のファイル
-CommentSound = 'metal03.wav'
 # 挨拶コメントの有無
 IsGreetingComment = True
 # 挨拶コメント時の効果音の有無
 IsPlaySoundGreeting = True
 # 挨拶コメント時の効果音、WAVかMP3のファイル
 GreetingSound = 'tm2_chime002.wav'
+# コメント時の効果音の有無
+IsPlaySoundComment = True
+# コメント時の効果音、WAVかMP3のファイル
+CommentSound = 'metal03.wav'
+# コメントログファイルの保存の有無
+IsSaveCommentsFile = False
