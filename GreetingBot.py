@@ -21,45 +21,50 @@ ver = '1.0.0'
 try:
     sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
     configGreeting = importlib.import_module('config')
+    # configGreeting.Twitch_Channel = configGreeting.Twitch_Channel.lower()
+    # configGreeting.Trans_Username = configGreeting.Trans_Username.lower()
+    # remove "#" mark ------
+    if configGreeting.Twitch_Channel.startswith('#'):
+        print("Find # mark at channel name! I remove '#' from 'config:Twitch_Channel'")
+        configGreeting.Twitch_Channel = configGreeting.Twitch_Channel[1:]
+    # remove "oauth:" mark ------
+    if configGreeting.Trans_OAUTH.startswith('oauth:'):
+        print("Find 'oauth:' at OAUTH text! I remove 'oauth:' from 'config:Trans_OAUTH'")
+        configGreeting.Trans_OAUTH = configGreeting.Trans_OAUTH[6:]
 except Exception as e:
     print(e)
     print('Please make [config.py] and put it with twitchTransFN')
     input()  # stop for error!!
 
-# configGreeting.Twitch_Channel = configGreeting.Twitch_Channel.lower()
-# configGreeting.Trans_Username = configGreeting.Trans_Username.lower()
-
-# remove "#" mark ------
-if configGreeting.Twitch_Channel.startswith('#'):
-    print("Find # mark at channel name! I remove '#' from 'config:Twitch_Channel'")
-    configGreeting.Twitch_Channel = configGreeting.Twitch_Channel[1:]
-
-# remove "oauth:" mark ------
-if configGreeting.Trans_OAUTH.startswith('oauth:'):
-    print("Find 'oauth:' at OAUTH text! I remove 'oauth:' from 'config:Trans_OAUTH'")
-    configGreeting.Trans_OAUTH = configGreeting.Trans_OAUTH[6:]
 
 # ユーザーリストの初期化
 UserList = ['']
 UserList = [str.lower() for str in UserList]
 
-# Simple bot
-bot = commands.Bot(
-    irc_token="oauth:" + configGreeting.Trans_OAUTH,
-    client_id=configGreeting.CLIENT_ID,
-    nick=configGreeting.Trans_Username,
-    prefix=configGreeting.BOT_PREFIX,
-    initial_channels=[configGreeting.Twitch_Channel]
-)
+
+# botの初期化
+try:
+    bot = commands.Bot(
+        irc_token="oauth:" + configGreeting.Trans_OAUTH,
+        client_id=configGreeting.CLIENT_ID,
+        nick=configGreeting.Trans_Username,
+        prefix=configGreeting.BOT_PREFIX,
+        initial_channels=[configGreeting.Twitch_Channel]
+    )
+except Exception as e:
+    print(e)
+    print('Please check [config.py]')
+    input()  # stop for error!!
 
 
-# 起動時処理 ----------
+# bot処理 #####################################
+# bot起動時処理
 @bot.event
 async def event_ready():
     print(f"{configGreeting.Trans_Username}がオンラインになりました!")
     ws = bot._ws  # this is only needed to send messages within event_ready
     await ws.send_privmsg(configGreeting.Twitch_Channel, f"/color {configGreeting.TextColor}")
-    await ws.send_privmsg(configGreeting.Twitch_Channel, f"/me has landed!")
+    await ws.send_privmsg(configGreeting.Twitch_Channel, f"/me has landed!　Hello!!")
 
     # 書き込み開始のファイル出力
     if configGreeting.IsSaveCommentsFile:
