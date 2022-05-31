@@ -39,3 +39,15 @@ sound/metal25_a.wav
 sound/on10.wav
 sound/tm2_chime002.wav
 sound/tm2_quiz000good.wav
+GreetingBot.spec
+__pycache__/GreetingBot.cpython-38.pyc
+build/GreetingBot/Analysis-00.toc
+build/GreetingBot/base_library.zip
+build/GreetingBot/EXE-00.toc
+build/GreetingBot/GreetingBot.exe.manifest
+build/GreetingBot/PKG-00.pkg
+build/GreetingBot/PKG-00.toc
+build/GreetingBot/PYZ-00.pyz
+build/GreetingBot/PYZ-00.toc
+build/GreetingBot/warn-GreetingBot.txt
+build/GreetingBot/xref-GreetingBot.html
