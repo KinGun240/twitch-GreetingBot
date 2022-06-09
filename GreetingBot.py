@@ -1,3 +1,6 @@
+# Copyright 2022 KinGun
+# This software is released under the MIT License, see LICENSE.
+
 from twitchio.ext import commands
 from playsound import playsound
 
@@ -14,7 +17,7 @@ import unicodedata
 Debug = False
 
 # バージョン
-ver = '1.0.0'
+ver = '1.0.1'
 
 # 各種初期設定 #####################################
 # bot用コンフィグの読み込み
@@ -88,15 +91,16 @@ async def event_message(ctx):
     user = ctx.author.name.lower()
     name = ctx.author.display_name
     isMod = ctx.author.is_mod
+    is_Sub = ctx.is_subscriber
     if len(ctx.author.badges) > 0:
         badges = ctx.author.badges['broadcaster']
     else:
         badges = None
 
     # メッセージがbotまたはストリーマーの投稿の場合は抜ける
-    if configGreeting.Debug:
+    if Debug:
         print(f'echo: {ctx.echo}, {ctx.content}')
-        time.sleep(1)
+        # time.sleep(1)
     if ctx.echo or user == bot.nick or badges == '1':
         return
 
@@ -106,7 +110,7 @@ async def event_message(ctx):
             playsound('./sound/{}'.format(configGreeting.CommentSound), True)
     except Exception as e:
         print('sound error: [!sound] command can not play sound...')
-        if configGreeting.Debug:
+        if Debug:
             print(e.args)
 
     # タイムスタンプ、ユーザー、コメントのファイル出力
@@ -140,7 +144,7 @@ async def event_message(ctx):
             # playsound('./sound/tm2_chime002.wav', True)
     except Exception as e:
         print('sound error: [!sound] command can not play sound...')
-        if configGreeting.Debug:
+        if Debug:
             print(e.args)
 
     # コンソールへの表示
@@ -205,7 +209,7 @@ def CLEANMEIFOLDERS():
     except Exception:
         base_path = os.path.abspath(".")
 
-    if configGreeting.Debug:
+    if Debug:
         print(f'_MEI base path: {base_path}')
     base_path = base_path.split("\\")
     base_path.pop(-1)
@@ -231,7 +235,7 @@ def main():
         bot.run()
 
     except Exception as e:
-        if configGreeting.Debug:
+        if Debug:
             print(e)
         input()  # stop for error!!
 

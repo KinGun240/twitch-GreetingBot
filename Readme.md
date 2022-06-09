@@ -44,6 +44,13 @@ Twitchのチャット欄にコメントされる度に音声を鳴らし、
   https://github.com/KinGun240
 
 # 履歴
+## バージョン 1.0.1
+ - 2022/06/10  
+   Debug周りの処理がおかしかったのを修正
+
 ## バージョン 1.0.0
  - 2022/05/31  
    1年以上放って置いてたのを掘り出してきた
+
+# License
+The source code is licensed MIT.
