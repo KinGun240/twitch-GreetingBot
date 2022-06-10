@@ -1,6 +1,7 @@
 # Copyright 2022 KinGun
 # This software is released under the MIT License, see LICENSE.
 
+from numpy import int32
 from twitchio.ext import commands
 from playsound import playsound
 
@@ -14,10 +15,11 @@ import sys
 import signal
 import unicodedata
 
-Debug = False
+Debug = True
 
 # バージョン
-ver = '1.0.1'
+ver = '1.1.0'
+userExpFile = "userExpList.csv"
 
 # 各種初期設定 #####################################
 # bot用コンフィグの読み込み
@@ -26,6 +28,7 @@ try:
     configGreeting = importlib.import_module('config')
     # configGreeting.Twitch_Channel = configGreeting.Twitch_Channel.lower()
     # configGreeting.Trans_Username = configGreeting.Trans_Username.lower()
+    print("Read config.py")
     # remove "#" mark ------
     if configGreeting.Twitch_Channel.startswith('#'):
         print("Find # mark at channel name! I remove '#' from 'config:Twitch_Channel'")
@@ -38,11 +41,6 @@ except Exception as e:
     print(e)
     print('Please make [config.py] and put it with twitchTransFN')
     input()  # stop for error!!
-
-
-# ユーザーリストの初期化
-UserList = ['']
-UserList = [str.lower() for str in UserList]
 
 
 # botの初期化
@@ -58,6 +56,37 @@ except Exception as e:
     print(e)
     print('Please check [config.py]')
     input()  # stop for error!!
+
+
+# GreetingBot用パラメーターの読み込み
+try:
+    obsCommands = importlib.import_module('param_greetingBot')
+    print("Read param_greetingBot.py")
+except Exception as e:
+    print(e)
+    print('Please make [param_greetingBot.py] and put it with Greetingbot')
+    input()  # stop for error!!
+
+
+# 内部変数の設定 ----------
+# ユーザー経験値リストの読み込み
+try:
+    with open(f"data/{userExpFile}", "r", encoding="utf8",  newline="") as f:
+        csvreader = csv.DictReader(f, skipinitialspace=True)
+        print(f"Read {userExpFile}")
+        UserExpList = [row for row in csvreader]
+except Exception as e:
+    print(e)
+    print(f'Please check [{userExpFile}] and put it with Greetingbot')
+    input()
+if Debug:
+    for row in UserExpList:
+        print(row)
+
+
+# 初見ユーザーリストの初期化
+FirstUserList = ['']
+FirstUserList = [str.lower() for str in FirstUserList]
 
 
 # bot処理 #####################################
@@ -100,7 +129,6 @@ async def event_message(ctx):
     # メッセージがbotまたはストリーマーの投稿の場合は抜ける
     if Debug:
         print(f'echo: {ctx.echo}, {ctx.content}')
-        # time.sleep(1)
     if ctx.echo or user == bot.nick or badges == '1':
         return
 
@@ -122,9 +150,9 @@ async def event_message(ctx):
 
     # ユーザーリストへの追加
     print('USER:{}'.format(user))
-    if user in UserList:
+    if user in FirstUserList:
         return
-    UserList.append(user)
+    FirstUserList.append(user)
 
     # チャット欄へコメント出力
     if configGreeting.IsGreetingComment:
