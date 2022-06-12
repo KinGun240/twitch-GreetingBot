@@ -1,7 +1,6 @@
 # Copyright 2022 KinGun
 # This software is released under the MIT License, see LICENSE.
 
-from numpy import int32
 from twitchio.ext import commands
 from playsound import playsound
 
@@ -71,22 +70,22 @@ except Exception as e:
 # 内部変数の設定 ----------
 # ユーザー経験値リストの読み込み
 try:
-    with open(f"data/{userExpFile}", "r", encoding="utf8",  newline="") as f:
-        csvreader = csv.DictReader(f, skipinitialspace=True)
-        print(f"Read {userExpFile}")
-        UserExpList = [row for row in csvreader]
+    # with open(f"data/{userExpFile}", "r", encoding="utf8",  newline="") as f:
+    #     csvReader = csv.DictReader(f, skipinitialspace=True)
+    #     UserExpList = [row for row in csvReader]
+    #     print(f"Read {userExpFile}")
+    UserExpList = pd.read_csv(f"data/{userExpFile}")
+    print(f"Read {userExpFile}")
 except Exception as e:
     print(e)
     print(f'Please check [{userExpFile}] and put it with Greetingbot')
     input()
 if Debug:
-    for row in UserExpList:
-        print(row)
-
+    print(UserExpList)
 
 # 初見ユーザーリストの初期化
 FirstUserList = ['']
-FirstUserList = [str.lower() for str in FirstUserList]
+# FirstUserList = [str.lower() for str in FirstUserList]
 
 
 # bot処理 #####################################
@@ -96,7 +95,7 @@ async def event_ready():
     print(f"{configGreeting.Trans_Username}がオンラインになりました!")
     ws = bot._ws  # this is only needed to send messages within event_ready
     await ws.send_privmsg(configGreeting.Twitch_Channel, f"/color {configGreeting.TextColor}")
-    await ws.send_privmsg(configGreeting.Twitch_Channel, f"/me has landed!　Hello!!")
+    await ws.send_privmsg(configGreeting.Twitch_Channel, f"/me has landed! Hello!!")
 
     # 書き込み開始のファイル出力
     if configGreeting.IsSaveCommentsFile:
@@ -109,11 +108,6 @@ async def event_ready():
 # メッセージ受信時処理 ----------
 @bot.event
 async def event_message(ctx):
-    # メッセージがコマンドの場合は抜ける
-    await bot.handle_commands(ctx)
-    if ctx.content.startswith('!'):
-        return
-
     msg = ctx.content
     time = pd.Timestamp(ctx.timestamp, unit='s', tz='UTC')
     time = time.tz_convert('Asia/Tokyo')
@@ -126,11 +120,16 @@ async def event_message(ctx):
     else:
         badges = None
 
-    # メッセージがbotまたはストリーマーの投稿の場合は抜ける
     if Debug:
         print(f'echo: {ctx.echo}, {ctx.content}')
-    if ctx.echo or user == bot.nick or badges == '1':
+    # メッセージがコマンドの場合は抜ける
+    # await bot.handle_commands(ctx)
+    if ctx.content.startswith('!'):
         return
+    # メッセージがbotまたはストリーマーの投稿の場合は抜ける
+    if not Debug:
+        if ctx.echo or user == bot.nick or badges == '1':
+            return
 
     # コメント用の効果音を鳴らす
     try:
@@ -142,19 +141,57 @@ async def event_message(ctx):
             print(e.args)
 
     # タイムスタンプ、ユーザー、コメントのファイル出力
-    if configGreeting.IsSaveCommentsFile:
-        with open('comments.csv', 'a') as commentsFile:
-            writer = csv.writer(commentsFile)
-            writer.writerow([time, user, msg])
-            commentsFile.close()
+    try:
+        if configGreeting.IsSaveCommentsFile:
+            with open('comments.csv', 'a') as commentsFile:
+                writer = csv.writer(commentsFile)
+                writer.writerow([time, user, msg])
+                commentsFile.close()
+    except Exception as e:
+        print('file error: [comments.csv] can not save...')
+        if Debug:
+            print(e.args)
 
-    # ユーザーリストへの追加
+    # レベルアップ処理 ----------
+    global UserExpList
+    key = 'UserName'
+    value = 'MessageCount'
+    # ユーザーがユーザー経験値リストに存在する場合は経験値を１追加
+    # 存在しない場合はユーザー経験値リストに追加
+    try:
+        row = UserExpList.query(f"{key} in ['{user}']")
+        if not row.empty:
+            UserExpList.loc[UserExpList[key] == user, value] = row[value] + 1
+        else:
+            newRow = pd.DataFrame([[user, 1]], columns=[key, value])
+            print(newRow)
+            UserExpList = UserExpList.append(newRow, ignore_index=True)
+        print(UserExpList)
+    except Exception as e:
+        print('error: UserExpList not read...')
+        if Debug:
+            print(e.args)
+
+    # ユーザー経験値リストを保存しなおす
+    try:
+        UserExpList.to_csv(f"data/{userExpFile}", index=False)
+    except Exception as e:
+        print(f'file error: [{userExpFile}] can not save...')
+        if Debug:
+            print(e.args)
+
+    # 経験値に応じてレベルアップさせる
+
+    # 挨拶処理 ----------
+    global FirstUserList
+    # ユーザーが初見ユーザーリストに存在する場合は処理終了
+    # いない場合は初見ユーザーリストへ追加
     print('USER:{}'.format(user))
     if user in FirstUserList:
         return
     FirstUserList.append(user)
 
-    # チャット欄へコメント出力
+    # チャット欄へ初見コメント出力
     if configGreeting.IsGreetingComment:
         strLen = len(msg)
         multiLen = count_text(msg)
@@ -165,7 +202,7 @@ async def event_message(ctx):
             out_text = 'Hello, {} !!'.format(name)
         await ctx.send("/me " + out_text)
 
-    # 挨拶用の効果音を鳴らす
+    # 初見挨拶用の効果音を鳴らす
     try:
         if configGreeting.IsPlaySoundGreeting:
             playsound('./sound/{}'.format(configGreeting.GreetingSound), True)
