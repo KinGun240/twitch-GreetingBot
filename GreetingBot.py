@@ -30,11 +30,13 @@ try:
     print("Read config.py")
     # remove "#" mark ------
     if configGreeting.Twitch_Channel.startswith('#'):
-        print("Find # mark at channel name! I remove '#' from 'config:Twitch_Channel'")
+        print("Find # mark at channel name!\
+            I remove '#' from 'config:Twitch_Channel'")
         configGreeting.Twitch_Channel = configGreeting.Twitch_Channel[1:]
     # remove "oauth:" mark ------
     if configGreeting.Trans_OAUTH.startswith('oauth:'):
-        print("Find 'oauth:' at OAUTH text! I remove 'oauth:' from 'config:Trans_OAUTH'")
+        print("Find 'oauth:' at OAUTH text!\
+            I remove 'oauth:' from 'config:Trans_OAUTH'")
         configGreeting.Trans_OAUTH = configGreeting.Trans_OAUTH[6:]
 except Exception as e:
     print(e)
@@ -77,7 +79,7 @@ try:
 except Exception as e:
     print(e)
     print(
-        f'Please check [{userExpFile}] and put it with Greetingbot/data folder')
+        f'Please check [{userExpFile}] and put it with data folder')
     input()
 if Debug:
     print(UserExpList)
@@ -108,8 +110,10 @@ FirstUserList = ['']
 async def event_ready():
     print(f"{configGreeting.Trans_Username}がオンラインになりました!")
     ws = bot._ws  # this is only needed to send messages within event_ready
-    await ws.send_privmsg(configGreeting.Twitch_Channel, f"/color {configGreeting.TextColor}")
-    await ws.send_privmsg(configGreeting.Twitch_Channel, f"/me has landed! Hello!!")
+    await ws.send_privmsg(configGreeting.Twitch_Channel,
+                          f"/color {configGreeting.TextColor}")
+    await ws.send_privmsg(configGreeting.Twitch_Channel,
+                          "/me has landed! Hello!!")
 
     # 書き込み開始のファイル出力
     if configGreeting.IsSaveCommentsFile:
@@ -127,8 +131,8 @@ async def event_message(ctx):
     time = time.tz_convert('Asia/Tokyo')
     user = ctx.author.name.lower()
     name = ctx.author.display_name
-    isMod = ctx.author.is_mod
-    is_Sub = ctx.author.is_subscriber
+    # isMod = ctx.author.is_mod
+    # is_Sub = ctx.author.is_subscriber
     if len(ctx.author.badges) > 0:
         badges = ctx.author.badges['broadcaster']
     else:
@@ -145,6 +149,7 @@ async def event_message(ctx):
         if ctx.echo or user == bot.nick or badges == '1':
             return
 
+    # コメント処理 ----------
     # コメント用の効果音を鳴らす
     try:
         if configGreeting.IsPlaySoundComment:
