@@ -41,7 +41,6 @@ except Exception as e:
     print('Please make [config.py] and put it with twitchTransFN')
     input()  # stop for error!!
 
-
 # botの初期化
 try:
     bot = commands.Bot(
@@ -56,10 +55,9 @@ except Exception as e:
     print('Please check [config.py]')
     input()  # stop for error!!
 
-
 # GreetingBot用パラメーターの読み込み
 try:
-    obsCommands = importlib.import_module('param_greetingBot')
+    greetingParam = importlib.import_module('param_greetingBot')
     print("Read param_greetingBot.py")
 except Exception as e:
     print(e)
@@ -78,7 +76,23 @@ try:
     print(f"Read {userExpFile}")
 except Exception as e:
     print(e)
-    print(f'Please check [{userExpFile}] and put it with Greetingbot')
+    print(
+        f'Please check [{userExpFile}] and put it with Greetingbot/data folder')
+    input()
+if Debug:
+    print(UserExpList)
+
+# ユーザー経験値リストに経験値テーブルに基づいたレベルを設定
+try:
+    UserExpList['Level'] = 0
+    for index, row in UserExpList.iterrows():
+        for stepIndex, stepNum in enumerate(greetingParam.ExpTable):
+            if row.MessageCount < stepNum:
+                UserExpList.at[index, 'Level'] = stepIndex
+                break
+except Exception as e:
+    print(e)
+    print('Please check [param_greetingBot.py] and put it with Greetingbot')
     input()
 if Debug:
     print(UserExpList)
@@ -123,7 +137,7 @@ async def event_message(ctx):
     if Debug:
         print(f'echo: {ctx.echo}, {ctx.content}')
     # メッセージがコマンドの場合は抜ける
-    # await bot.handle_commands(ctx)
+    await bot.handle_commands(ctx)
     if ctx.content.startswith('!'):
         return
     # メッセージがbotまたはストリーマーの投稿の場合は抜ける
@@ -158,12 +172,14 @@ async def event_message(ctx):
     value = 'MessageCount'
     # ユーザーがユーザー経験値リストに存在する場合は経験値を１追加
     # 存在しない場合はユーザー経験値リストに追加
+    count = 1
     try:
         row = UserExpList.query(f"{key} in ['{user}']")
         if not row.empty:
-            UserExpList.loc[UserExpList[key] == user, value] = row[value] + 1
+            count = row[value] + 1
+            UserExpList.loc[UserExpList[key] == user, value] = count
         else:
-            newRow = pd.DataFrame([[user, 1]], columns=[key, value])
+            newRow = pd.DataFrame([[user, count]], columns=[key, value])
             print(newRow)
             UserExpList = UserExpList.append(newRow, ignore_index=True)
         print(UserExpList)
@@ -181,6 +197,13 @@ async def event_message(ctx):
             print(e.args)
 
     # 経験値に応じてレベルアップさせる
+    row = UserExpList.query(f"{key} in ['{user}']")
+    for stepIndex, stepNum in enumerate(greetingParam.ExpTable):
+        if row[value].item() < stepNum:
+            UserExpList.loc[UserExpList[key] == user, 'Level'] = stepIndex
+            break
+    if Debug:
+        print(UserExpList)
 
     # 挨拶処理 ----------
     global FirstUserList
@@ -200,7 +223,7 @@ async def event_message(ctx):
             out_text = 'ようこそ、{} さん！'.format(name)
         else:
             out_text = 'Hello, {} !!'.format(name)
-        await ctx.send("/me " + out_text)
+        await ctx.channel.send("/me " + out_text)
 
     # 初見挨拶用の効果音を鳴らす
     try:
@@ -217,7 +240,7 @@ async def event_message(ctx):
 
 
 # ハローコマンド時処理 ----------
-@bot.command(name='hello')
+@bot.command()
 async def hello(ctx):
     await ctx.send(f'{ctx.author.name}さん こんにちは～ KonCha')
 
