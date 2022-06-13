@@ -51,3 +51,6 @@ build/GreetingBot/PYZ-00.pyz
 build/GreetingBot/PYZ-00.toc
 build/GreetingBot/warn-GreetingBot.txt
 build/GreetingBot/xref-GreetingBot.html
+__pycache__/param_greetingBot.cpython-38.pyc
+sound/tm2_power001.wav
+data/userExpList.csv
