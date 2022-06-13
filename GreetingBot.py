@@ -74,12 +74,11 @@ try:
     #     csvReader = csv.DictReader(f, skipinitialspace=True)
     #     UserExpList = [row for row in csvReader]
     #     print(f"Read {userExpFile}")
-    UserExpList = pd.read_csv(f"data/{userExpFile}")
+    UserExpList = pd.read_csv(f"./data/{userExpFile}")
     print(f"Read {userExpFile}")
 except Exception as e:
     print(e)
-    print(
-        f'Please check [{userExpFile}] and put it with data folder')
+    print(f'Please check [{userExpFile}] and put it with data folder')
     input()
 if Debug:
     print(UserExpList)
@@ -105,7 +104,7 @@ FirstUserList = ['']
 
 
 # bot処理 #####################################
-# bot起動時処理
+# bot起動時処理 ----------
 @bot.event
 async def event_ready():
     print(f"{configGreeting.Trans_Username}がオンラインになりました!")
@@ -116,7 +115,7 @@ async def event_ready():
                           "/me has landed! Hello!!")
 
     # 書き込み開始のファイル出力
-    if configGreeting.IsSaveCommentsFile:
+    if greetingParam.IsSaveCommentsFile:
         with open('comments.csv', 'a') as commentsFile:
             writer = csv.writer(commentsFile)
             writer.writerow(['#Start Write Comments'])
@@ -137,6 +136,8 @@ async def event_message(ctx):
         badges = ctx.author.badges['broadcaster']
     else:
         badges = None
+    strLen = len(msg)
+    multiLen = count_text(msg)
 
     if Debug:
         print(f'echo: {ctx.echo}, {ctx.content}')
@@ -152,16 +153,16 @@ async def event_message(ctx):
     # コメント処理 ----------
     # コメント用の効果音を鳴らす
     try:
-        if configGreeting.IsPlaySoundComment:
-            playsound('./sound/{}'.format(configGreeting.CommentSound), True)
+        if greetingParam.IsPlaySoundComment:
+            playsound(f"./sound/{greetingParam.CommentSound}", True)
     except Exception as e:
-        print('sound error: [!sound] command can not play sound...')
+        print('sound error: Please check [config.py] and sound folder...')
         if Debug:
             print(e.args)
 
     # タイムスタンプ、ユーザー、コメントのファイル出力
     try:
-        if configGreeting.IsSaveCommentsFile:
+        if greetingParam.IsSaveCommentsFile:
             with open('comments.csv', 'a') as commentsFile:
                 writer = csv.writer(commentsFile)
                 writer.writerow([time, user, msg])
@@ -185,7 +186,6 @@ async def event_message(ctx):
             UserExpList.loc[UserExpList[key] == user, value] = count
         else:
             newRow = pd.DataFrame([[user, count]], columns=[key, value])
-            print(newRow)
             UserExpList = UserExpList.append(newRow, ignore_index=True)
         print(UserExpList)
     except Exception as e:
@@ -202,13 +202,32 @@ async def event_message(ctx):
             print(e.args)
 
     # 経験値に応じてレベルアップさせる
+    oldLevel = UserExpList.loc[UserExpList[key] == user, 'Level'].item()
+    newLevel = 0
     row = UserExpList.query(f"{key} in ['{user}']")
     for stepIndex, stepNum in enumerate(greetingParam.ExpTable):
         if row[value].item() < stepNum:
-            UserExpList.loc[UserExpList[key] == user, 'Level'] = stepIndex
+            newLevel = stepIndex
+            UserExpList.loc[UserExpList[key] == user, 'Level'] = newLevel
             break
     if Debug:
         print(UserExpList)
+
+    # レベルアップが発生していたらコメントを出力する・効果音を鳴らす
+    if newLevel > oldLevel:
+        if greetingParam.IsLevelupComment:
+            if strLen != multiLen:
+                out_text = f"{name} さんのレベルが{newLevel}に上がりました！"
+            else:
+                out_text = f"{name}'s level has risen to {newLevel}!"
+            await ctx.channel.send("/me " + out_text)
+        if greetingParam.IsPlaySoundLevelup:
+            try:
+                playsound(f"./sound/{greetingParam.LevelupSound}", True)
+            except Exception as e:
+                print('sound error: Please check [config.py] and sound folder')
+                if Debug:
+                    print(e.args)
 
     # 挨拶処理 ----------
     global FirstUserList
@@ -220,11 +239,8 @@ async def event_message(ctx):
     FirstUserList.append(user)
 
     # チャット欄へ初見コメント出力
-    if configGreeting.IsGreetingComment:
-        strLen = len(msg)
-        multiLen = count_text(msg)
-
-        if strLen != multiLen or ctx.content.startswith('!'):
+    if greetingParam.IsGreetingComment:
+        if strLen != multiLen:
             out_text = 'ようこそ、{} さん！'.format(name)
         else:
             out_text = 'Hello, {} !!'.format(name)
@@ -232,11 +248,10 @@ async def event_message(ctx):
 
     # 初見挨拶用の効果音を鳴らす
     try:
-        if configGreeting.IsPlaySoundGreeting:
-            playsound('./sound/{}'.format(configGreeting.GreetingSound), True)
-            # playsound('./sound/tm2_chime002.wav', True)
+        if greetingParam.IsPlaySoundGreeting:
+            playsound(f"./sound/{greetingParam.GreetingSound}", True)
     except Exception as e:
-        print('sound error: [!sound] command can not play sound...')
+        print('sound error: Please check [config.py] and sound folder...')
         if Debug:
             print(e.args)
 
@@ -294,7 +309,8 @@ def sig_handler(signum, frame) -> None:
 #####################################
 # _MEI cleaner  -------------
 # Thanks to Sadra Heydari
-# @ https://stackoverflow.com/questions/57261199/python-handling-the-meipass-folder-in-temporary-folder
+# @ https://stackoverflow.com/questions/57261199/
+#   python-handling-the-meipass-folder-in-temporary-folder
 def CLEANMEIFOLDERS():
     try:
         base_path = sys._MEIPASS
