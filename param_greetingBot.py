@@ -1,5 +1,5 @@
 # パラメーター項目 ###########################
-# コメントリストファイルの保存の有無
+# コメントファイルの保存の有無
 IsSaveCommentsFile = False
 # コメント時の効果音の有無
 IsPlaySoundComment = True

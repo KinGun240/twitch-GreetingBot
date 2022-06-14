@@ -70,10 +70,6 @@ except Exception as e:
 # 内部変数の設定 ----------
 # ユーザー経験値リストの読み込み
 try:
-    # with open(f"data/{userExpFile}", "r", encoding="utf8",  newline="") as f:
-    #     csvReader = csv.DictReader(f, skipinitialspace=True)
-    #     UserExpList = [row for row in csvReader]
-    #     print(f"Read {userExpFile}")
     UserExpList = pd.read_csv(f"./data/{userExpFile}")
     print(f"Read {userExpFile}")
 except Exception as e:
@@ -219,7 +215,7 @@ async def event_message(ctx):
             if strLen != multiLen:
                 out_text = f"{name} さんのレベルが{newLevel}に上がりました！"
             else:
-                out_text = f"{name}'s level has risen to {newLevel}!"
+                out_text = f"{name}-san's level has risen to {newLevel}!"
             await ctx.channel.send("/me " + out_text)
         if greetingParam.IsPlaySoundLevelup:
             try:
@@ -241,9 +237,9 @@ async def event_message(ctx):
     # チャット欄へ初見コメント出力
     if greetingParam.IsGreetingComment:
         if strLen != multiLen:
-            out_text = 'ようこそ、{} さん！'.format(name)
+            out_text = f'ようこそ、{name} さん！'
         else:
-            out_text = 'Hello, {} !!'.format(name)
+            out_text = f'Hello, {name}-san!!'
         await ctx.channel.send("/me " + out_text)
 
     # 初見挨拶用の効果音を鳴らす
