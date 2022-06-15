@@ -17,7 +17,7 @@ import unicodedata
 Debug = False
 
 # バージョン
-ver = '1.1.1'
+ver = '1.1.2'
 userExpFile = "userExpList.csv"
 
 # 各種初期設定 #####################################
