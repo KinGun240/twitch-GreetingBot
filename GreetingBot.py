@@ -14,10 +14,10 @@ import sys
 import signal
 import unicodedata
 
-Debug = True
+Debug = False
 
 # バージョン
-ver = '1.1.0'
+ver = '1.1.1'
 userExpFile = "userExpList.csv"
 
 # 各種初期設定 #####################################
@@ -30,13 +30,11 @@ try:
     print("Read config.py")
     # remove "#" mark ------
     if configGreeting.Twitch_Channel.startswith('#'):
-        print("Find # mark at channel name!\
-            I remove '#' from 'config:Twitch_Channel'")
+        print("Find # mark at channel name! I remove '#' from 'config:Twitch_Channel'")
         configGreeting.Twitch_Channel = configGreeting.Twitch_Channel[1:]
     # remove "oauth:" mark ------
     if configGreeting.Trans_OAUTH.startswith('oauth:'):
-        print("Find 'oauth:' at OAUTH text!\
-            I remove 'oauth:' from 'config:Trans_OAUTH'")
+        print("Find 'oauth:' at OAUTH text! I remove 'oauth:' from 'config:Trans_OAUTH'")
         configGreeting.Trans_OAUTH = configGreeting.Trans_OAUTH[6:]
 except Exception as e:
     print(e)
@@ -47,7 +45,7 @@ except Exception as e:
 try:
     bot = commands.Bot(
         irc_token="oauth:" + configGreeting.Trans_OAUTH,
-        client_id=configGreeting.CLIENT_ID,
+        client_id="",
         nick=configGreeting.Trans_Username,
         prefix=configGreeting.BOT_PREFIX,
         initial_channels=[configGreeting.Twitch_Channel]
@@ -237,9 +235,9 @@ async def event_message(ctx):
     # チャット欄へ初見コメント出力
     if greetingParam.IsGreetingComment:
         if strLen != multiLen:
-            out_text = f'ようこそ、{name} さん！'
+            out_text = f'{name} さん、ようこそ！'
         else:
-            out_text = f'Hello, {name}-san!!'
+            out_text = f'{name}-san, Hello!!'
         await ctx.channel.send("/me " + out_text)
 
     # 初見挨拶用の効果音を鳴らす
@@ -269,7 +267,7 @@ def count_text(message):
     # 文章中の文字数分ループを回す
     for i in message:
         letter = unicodedata.east_asian_width(i)
-        print(letter)
+        # print(letter)
         if letter == 'H':       # 半角
             text_length = text_length + 1
         elif letter == 'Na':    # 半角
