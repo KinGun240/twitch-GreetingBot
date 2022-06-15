@@ -33,20 +33,20 @@ try:
         print("Find # mark at channel name! I remove '#' from 'config:Twitch_Channel'")
         configGreeting.Twitch_Channel = configGreeting.Twitch_Channel[1:]
     # remove "oauth:" mark ------
-    if configGreeting.Trans_OAUTH.startswith('oauth:'):
-        print("Find 'oauth:' at OAUTH text! I remove 'oauth:' from 'config:Trans_OAUTH'")
-        configGreeting.Trans_OAUTH = configGreeting.Trans_OAUTH[6:]
+    if configGreeting.Bot_OAUTH.startswith('oauth:'):
+        print("Find 'oauth:' at OAUTH text! I remove 'oauth:' from 'config:Bot_OAUTH'")
+        configGreeting.Bot_OAUTH = configGreeting.Bot_OAUTH[6:]
 except Exception as e:
     print(e)
-    print('Please make [config.py] and put it with twitchTransFN')
+    print('Please make [config.py] and put it with Greetingbot')
     input()  # stop for error!!
 
 # botの初期化
 try:
     bot = commands.Bot(
-        irc_token="oauth:" + configGreeting.Trans_OAUTH,
+        irc_token="oauth:" + configGreeting.Bot_OAUTH,
         client_id="",
-        nick=configGreeting.Trans_Username,
+        nick=configGreeting.Bot_ChannelName,
         prefix=configGreeting.BOT_PREFIX,
         initial_channels=[configGreeting.Twitch_Channel]
     )
@@ -101,7 +101,7 @@ FirstUserList = ['']
 # bot起動時処理 ----------
 @bot.event
 async def event_ready():
-    print(f"{configGreeting.Trans_Username}がオンラインになりました!")
+    print(f"{configGreeting.Bot_ChannelName}がオンラインになりました!")
     ws = bot._ws  # this is only needed to send messages within event_ready
     await ws.send_privmsg(configGreeting.Twitch_Channel,
                           f"/color {configGreeting.TextColor}")
