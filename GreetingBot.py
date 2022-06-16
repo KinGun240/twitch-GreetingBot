@@ -17,7 +17,7 @@ import unicodedata
 Debug = False
 
 # バージョン
-ver = '1.1.2'
+ver = '1.1.3'
 userExpFile = "userExpList.csv"
 
 # 各種初期設定 #####################################
@@ -126,10 +126,10 @@ async def event_message(ctx):
     name = ctx.author.display_name
     # isMod = ctx.author.is_mod
     # is_Sub = ctx.author.is_subscriber
-    if len(ctx.author.badges) > 0:
-        badges = ctx.author.badges['broadcaster']
-    else:
-        badges = None
+    # if len(ctx.author.badges) > 0:
+    #     badges = ctx.author.badges['broadcaster']
+    # else:
+    #     badges = None
     strLen = len(msg)
     multiLen = count_text(msg)
 
@@ -139,9 +139,9 @@ async def event_message(ctx):
     await bot.handle_commands(ctx)
     if ctx.content.startswith('!'):
         return
-    # メッセージがbotまたはストリーマーの投稿の場合は抜ける
+    # メッセージがbotの投稿の場合は抜ける
     if not Debug:
-        if ctx.echo or user == bot.nick or badges == '1':
+        if ctx.echo or user == bot.nick:
             return
 
     # コメント処理 ----------
