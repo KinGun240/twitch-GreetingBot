@@ -42,17 +42,27 @@ Twitchのチャット欄のコメントに関連して様々なアクション�
   > メッセージおよび効果音のそれぞれで、[param_greetingBot.py]からON/OFFが可能です。  
   > メッセージ内容や鳴らす音声ファイルは、[param_greetingBot.py]から変更が可能です。
 
-# 参考(config.pyの設定内容など)
+# その他
+本ソフトウェアを利用した場合の一切の責任を私は負いません、よろしくお願いします。  
+本ソフトウェアの使用する場合、配信概要欄に記載するやら、下記連絡先のどっかに一言あると喜びます。  
+* Mail  
+  kingunsq@gmail.com
+* Twitter  
+  https://twitter.com/Kin_Gun_
+* Github  
+  https://github.com/KinGun240
+
+## 参考
 * [Twitchにチャット翻訳botを導入する](https://note.com/tatsuya_iwama/n/nc42feebbb53d)
 * [翻訳ちゃんFreeNextの導入・使用方法](https://croom.sytes.net/trans/)
 * [TwitchIOでTwitchのBotを作る](https://qiita.com/maguro869/items/57b866779b665058cfe8)
 
-# 動作環境
+## 動作環境
 * OS  
   Windows 10(64bit)でのみ動作確認しています。  
   MacOSへの対応予定は今のところないです。  
 
-# ファイル構成
+## ファイル構成
 <details>
 <summary>見たい方はどうぞ</summary>
 
@@ -79,17 +89,7 @@ Twitchのチャット欄のコメントに関連して様々なアクション�
   - tm2_power001.wav
 </details>
 
-# その他
-本ソフトウェアを利用した場合の一切の責任を私は負いません、よろしくお願いします。  
-本ソフトウェアの使用する場合、配信概要欄に記載するやら、下記連絡先のどっかに一言あると喜びます。  
-* Mail  
-  kingunsq@gmail.com
-* Twitter  
-  https://twitter.com/Kin_Gun_
-* Github  
-  https://github.com/KinGun240
-
-# 履歴
+## 更新履歴
 * バージョン 1.2.0 - 2022/06/18
   - GreetingBotによるメッセージの内容を変更できるようにした(初見コメント挨拶、集計コメント反応)
   - Botのチャット欄へのメッセージを投げる順序を修正した(初見コメント挨拶は一番先)
@@ -123,5 +123,5 @@ Twitchのチャット欄のコメントに関連して様々なアクション�
   - 1年以上放って置いてたのを掘り出してきた
 </details>
 
-# License
+## License
 The source code is licensed MIT.

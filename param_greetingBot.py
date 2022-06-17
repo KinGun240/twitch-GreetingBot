@@ -5,6 +5,7 @@ IsSaveCommentsFile = False
 # コメント反応の音声のON/OFF
 IsPlaySoundComment = True
 # コメント反応の音声ファイル、WAVかMP3形式
+# ファイルは[sound]フォルダに置いてください
 CommentSound = 'metal03.wav'
 
 # レベルアップコメントのON/OFF
@@ -18,6 +19,7 @@ LevelupMessage2 = 'に上がりました！'
 # レベルアップ時の音声のON/OFF
 IsPlaySoundLevelup = True
 # レベルアップ時の音声ファイル、WAVかMP3形式
+# ファイルは[sound]フォルダに置いてください
 LevelupSound = 'tm2_power001.wav'
 # 必要コメント数テーブル
 #  デフォルト(Level n - 必要なコメント数)
@@ -43,4 +45,5 @@ GreetingMessage = 'さん、ようこそ！'
 # 初回コメント挨拶の音声のON/OFF
 IsPlaySoundGreeting = True
 # 初回コメント挨拶の音声ファイル、WAVかMP3形式
+# ファイルは[sound]フォルダに置いてください
 GreetingSound = 'tm2_chime002.wav'
