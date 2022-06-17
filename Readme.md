@@ -47,7 +47,15 @@ Twitchのチャット欄のコメントに関連して様々なアクション�
 * [翻訳ちゃんFreeNextの導入・使用方法](https://croom.sytes.net/trans/)
 * [TwitchIOでTwitchのBotを作る](https://qiita.com/maguro869/items/57b866779b665058cfe8)
 
+# 動作環境
+* OS  
+  Windows 10(64bit)でのみ動作確認しています。  
+  MacOSへの対応予定は今のところないです。  
+
 # ファイル構成
+<details>
+<summary>見たい方はどうぞ</summary>
+
 * GreetingBot.exe  
   本体となる実行ファイルです。無いと動きません。  
 * GreetingBot.py  
@@ -69,11 +77,7 @@ Twitchのチャット欄のコメントに関連して様々なアクション�
   - metal03.wav
   - tm2_chime002.wav
   - tm2_power001.wav
-
-# 動作環境
-* OS  
-  Windows 10(64bit)でのみ動作確認しています。  
-  MacOSへの対応予定は今のところないです。  
+</details>
 
 # その他
 本ソフトウェアを利用した場合の一切の責任を私は負いません、よろしくお願いします。  
