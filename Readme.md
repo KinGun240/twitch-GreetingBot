@@ -22,49 +22,30 @@ Twitchのチャット欄のコメントに関連して様々なアクション�
    Botの起動に成功した場合、Twitchのチャット欄に"[Bot名] has landed! Hello!!"と表示されます。  
 
 # 機能説明
-* **コメントログ保存**  
-  チャット欄のコメントを、CSVファイルに保存します。  
-
-  ファイルへの保存については、[param_greetingBot.py]からON/OFFが可能です。
-  - コメントログ保存ON/OFFの項目名:IsSaveCommentsFile デフォルトではFalse  
-* **コメント反応**  
-  チャット欄で視聴者がコメントする毎に、[param_greetingBot.py]で指定された音声を鳴らします。  
-
-  音声については、[param_greetingBot.py]からON/OFFが可能です。  
-  鳴らす音声ファイルは、[param_greetingBot.py]から変更が可能です。
-  - コメント反応用音声ON/OFFの項目名:IsPlaySoundComment デフォルトではTrue  
-  - コメント反応用音声ファイルの項目名:CommentSound デフォルトではmetal03.wav  
-* **集計コメント反応**  
+* **コメントログ保存**
+  チャット欄のコメントを、CSVファイルに保存します。
+  > ファイルへの保存については、[param_greetingBot.py]からON/OFFが可能です。
+* **コメント反応**
+  チャット欄で視聴者がコメントする毎に、[param_greetingBot.py]で指定された音声を鳴らします。
+  > 音声については、[param_greetingBot.py]からON/OFFが可能です。
+  > 鳴らす音声ファイルは、[param_greetingBot.py]から変更が可能です。
+* **集計コメント反応**
   各視聴者のコメント数を集計し、一定以上の数に達した場合に、  
-  チャット欄でbotがメッセージを書き込み、[param_greetingBot.py]で指定された音声を鳴らします。  
-
-  メッセージおよび音声のそれぞれで、[param_greetingBot.py]からON/OFFが可能です。
-  メッセージ内容や鳴らす音声ファイルは、[param_greetingBot.py]から変更が可能です。  
-  メッセージ・効果音に必要なコメント数は、[param_greetingBot.py]から変更が可能です。
-  - 集計コメント反応用メッセージON/OFFの項目名：IsLevelupComment デフォルトではTrue  
-  - 集計コメント反応用音声ON/OFFの項目名:IsPlaySoundLevelup デフォルトではTrue  
-  - 集計コメント反応用メッセージ内容の項目名:LevelupMessage1・LevelupMessage2  
-  - 集計コメント反応用音声ファイルの項目名:LevelupSound デフォルトではtm2_power001.wav  
-  - 集計コメント反応用必要コメント数の項目名:ExpTable  
-* **初回コメント挨拶**  
+  チャット欄でbotがメッセージを書き込み、[param_greetingBot.py]で指定された音声を鳴らします。
+  > メッセージおよび音声のそれぞれで、[param_greetingBot.py]からON/OFFが可能です。
+  > メッセージ内容や鳴らす音声ファイルは、[param_greetingBot.py]から変更が可能です。
+  > メッセージ・効果音に必要なコメント数は、[param_greetingBot.py]から変更が可能です。
+* **初回コメント挨拶**
   bot起動後の配信で、各視聴者のコメントが初めてである場合、  
   チャット欄でbotがメッセージを書き込み、[param_greetingBot.py]で指定された効果音を鳴らします。  
   2回目以降のコメントには実行しません。  
-
-  メッセージおよび効果音のそれぞれで、[param_greetingBot.py]からON/OFFが可能です。  
-  メッセージ内容や鳴らす音声ファイルは、[param_greetingBot.py]から変更が可能です。
-  - 初回コメント反応用メッセージON/OFFの項目名:IsGreetingComment デフォルトではTrue  
-  - 初回コメント反応用音声ON/OFFの項目名:IsPlaySoundGreeting デフォルトではTrue  
-  - 初回コメント反応用メッセージ内容の項目名:GreetingMessage  
-  - 初回コメント反応用音声ファイルの項目名:GreetingSound デフォルトではtm2_chime002.wav  
+  > メッセージおよび効果音のそれぞれで、[param_greetingBot.py]からON/OFFが可能です。  
+  > メッセージ内容や鳴らす音声ファイルは、[param_greetingBot.py]から変更が可能です。
 
 # 参考(config.pyの設定内容など)
-* Twitchにチャット翻訳botを導入する  
-  https://note.com/tatsuya_iwama/n/nc42feebbb53d
-* 翻訳ちゃんFreeNextの導入・使用方法  
-  https://croom.sytes.net/trans/
-* TwitchIOでTwitchのBotを作る  
-  https://qiita.com/maguro869/items/57b866779b665058cfe8
+* [Twitchにチャット翻訳botを導入する](https://note.com/tatsuya_iwama/n/nc42feebbb53d)
+* [翻訳ちゃんFreeNextの導入・使用方法](https://croom.sytes.net/trans/)
+* [TwitchIOでTwitchのBotを作る](https://qiita.com/maguro869/items/57b866779b665058cfe8)
 
 # ファイル構成
 * GreetingBot.exe  
@@ -111,6 +92,8 @@ Twitchのチャット欄のコメントに関連して様々なアクション�
   - コメントログのファイル名を変更した
   - その他微修正
 
+<details>
+<summary>過去の履歴</summary>
 * バージョン 1.1.3 - 2022/06/17
   - ユーザーのbadges判定を削除
   - Readmeの記述を強化
@@ -133,6 +116,7 @@ Twitchのチャット欄のコメントに関連して様々なアクション�
 
 * バージョン 1.0.0 - 2022/05/31
   - 1年以上放って置いてたのを掘り出してきた
+</details>
 
 # License
 The source code is licensed MIT.
