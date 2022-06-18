@@ -2,6 +2,11 @@
 # コメントログ保存のON/OFF
 IsSaveCommentsFile = False
 
+# 無視ユーザーリスト
+IgnoreUsersList = ['Nightbot', 'StreamElements', 'moobot']
+# 無視テキストリスト
+IgnoreTextList = ['http']
+
 # コメント反応の音声のON/OFF
 IsPlaySoundComment = True
 # コメント反応の音声ファイル、WAVかMP3形式
@@ -11,17 +16,17 @@ CommentSound = 'metal03.wav'
 # レベルアップコメントのON/OFF
 IsLevelupComment = True
 # レベルアップコメントのBotメッセージ内容
-# 例）LevelupMessage1 = 'さんは'
+# 例）LevelupMessage1 = 'さんはコメントによる経験を得て'
 # 　　LevelupMessage2 = 'にレベルアップ！'
-# 　　[Bot名]:[コメントしたユーザー] さんは[新しい数値]にレベルアップ！
-LevelupMessage1 = 'さんのレベルが'
+# 　　[Bot名]:[コメントしたユーザー] さんはコメントによる経験を得て[新しい数値]にレベルアップ！
+LevelupMessage1 = 'さんは今のコメントにより、レベルが'
 LevelupMessage2 = 'に上がりました！'
 # レベルアップ時の音声のON/OFF
 IsPlaySoundLevelup = True
 # レベルアップ時の音声ファイル、WAVかMP3形式
 # ファイルは[sound]フォルダに置いてください
 LevelupSound = 'tm2_power001.wav'
-# 必要コメント数テーブル
+# コメント数テーブル
 #  デフォルト(Level n - 必要なコメント数)
 #  Level 1 - 2
 #  Level 2 - 4
@@ -47,3 +52,13 @@ IsPlaySoundGreeting = True
 # 初回コメント挨拶の音声ファイル、WAVかMP3形式
 # ファイルは[sound]フォルダに置いてください
 GreetingSound = 'tm2_chime002.wav'
+
+# コマンドパラメーター項目 ###########################
+# expコマンドのON/OFF
+IsExpCommand = True
+
+# levelコマンドのON/OFF
+IsLevelCommand = True
+
+# nextコマンドのON/OFF
+IsNextCommand = True

@@ -14,7 +14,7 @@ import sys
 import signal
 import unicodedata
 
-Debug = False
+Debug = True
 
 # バージョン
 ver = '1.2.0'
@@ -76,10 +76,8 @@ except Exception as e:
     print(e)
     print(f'Please check [{UserExpFile}] and put it with data folder')
     input()
-if Debug:
-    print(UserExpList)
 
-# ユーザーメッセージ数リストにコメント数テーブルに基づいたレベルを設定
+# ユーザーコメント数リストにコメント数テーブルに基づいたレベルを設定
 try:
     UserExpList['Level'] = 0
     for index, row in UserExpList.iterrows():
@@ -87,16 +85,33 @@ try:
             if row.MessageCount < stepNum:
                 UserExpList.at[index, 'Level'] = int(stepIndex)
                 break
+    print(f'UserExpList:\n{UserExpList}')
 except Exception as e:
     print(e)
     print('Please check [param_greetingBot.py] and put it with GreetingBot')
     input()
-if Debug:
-    print(UserExpList)
 
 # 初見ユーザーリストの初期化
 FirstUserList = []
-# FirstUserList = [str.lower() for str in FirstUserList]
+
+# 無視ユーザリストの準備
+try:
+    IgnoreUserList = [x.strip() for x in greetingParam.IgnoreUsersList]
+    IgnoreUserList = [str.lower() for str in IgnoreUserList]
+    print(f'IgnoreUserList:{IgnoreUserList}')
+except Exception as e:
+    print(e)
+    print('Please check [param_greetingBot.py] and put it with GreetingBot')
+    input()
+
+# 無視テキストリストの準備
+try:
+    IgnoreTextList = [x.strip() for x in greetingParam.IgnoreTextList]
+    print(f'IgnoreTextList:{IgnoreTextList}')
+except Exception as e:
+    print(e)
+    print('Please check [param_greetingBot.py] and put it with GreetingBot')
+    input()
 
 
 # bot処理 #####################################
@@ -133,14 +148,23 @@ async def event_message(ctx):
     # isMod = ctx.author.is_mod
     # is_Sub = ctx.author.is_subscriber
 
-    if Debug:
-        print(f'echo: {ctx.echo}, {msg}')
+    # ユーザー・メッセージチェック処理 ----------
     # メッセージがコマンドまたはbotの投稿の場合は処理終了
     await bot.handle_commands(ctx)
-    if not Debug:
-        if ctx.content.startswith('!') or ctx.echo or user == bot.nick:
-            return
+    if ctx.content.startswith('!') or ctx.echo or user == bot.nick:
+        return
     print(f'\nTIME:{time}\nUSER:{user}\nMSG:{msg}')
+
+    # ユーザーが無視ユーザーリストに含まれる場合は処理終了
+    if user in IgnoreUserList:
+        print(f'{user} matched IgnoreUserList')
+        return
+
+    # メッセージが無視テキストリストに含まれる場合は処理終了
+    for word in IgnoreTextList:
+        if word in msg:
+            print(f'{msg} matched IgnoreTextList')
+            return
 
     # コメント反応処理 ----------
     # コメント反応のフラグ処理
@@ -151,8 +175,8 @@ async def event_message(ctx):
     global UserExpList
     key = 'UserName'
     value = 'MessageCount'
-    # ユーザーがユーザーメッセージ数リストに存在する場合はMessageCountを１追加
-    # 存在しない場合はユーザーメッセージ数リストに追加
+    # ユーザーがユーザーコメント数リストに存在する場合はMessageCountを１追加
+    # 存在しない場合はユーザーコメント数リストに追加
     count = 1
     try:
         row = UserExpList.query(f"{key} in ['{user}']")
@@ -167,7 +191,7 @@ async def event_message(ctx):
         if Debug:
             print(e.args)
 
-    # ユーザーのメッセージ数に応じてレベルアップさせる
+    # ユーザーのコメント数に応じてレベルアップさせる
     try:
         oldLevel = UserExpList.loc[UserExpList[key] == user, 'Level'].item()
         newLevel = 0
@@ -245,13 +269,84 @@ async def event_message(ctx):
         if Debug:
             print(e.args)
 
-    # ユーザーメッセージ数リストを保存しなおす
+    # ユーザーコメント数リストを保存しなおす
     try:
         UserExpList.to_csv(f"data/{UserExpFile}", index=False)
     except Exception as e:
         print(f'file error: [{UserExpFile}] can not save...')
         if Debug:
             print(e.args)
+
+
+# Expコマンド処理 ----------
+@bot.command()
+async def exp(ctx):
+    if greetingParam.IsExpCommand:
+        user = ctx.author.name.lower()
+        key = 'UserName'
+        value = 'MessageCount'
+        count = 0
+        # ユーザーがユーザーメッセージ数リストに存在する場合はコメント数を取得して表示する
+        try:
+            row = UserExpList.query(f"{key} in ['{user}']")
+            if not row.empty:
+                count = row[value].item()
+            await ctx.channel.send(f'{user} さんのコメント数は{int(count)}です')
+        except Exception as e:
+            print('error: UserExpList not read...')
+            if Debug:
+                print(e.args)
+
+
+# Levelコマンド処理 ----------
+@bot.command()
+async def level(ctx):
+    if greetingParam.IsLevelCommand:
+        user = ctx.author.name.lower()
+        key = 'UserName'
+        level = 0
+        # ユーザーがユーザーメッセージ数リストに存在する場合はLevelを取得
+        try:
+            row = UserExpList.query(f"{key} in ['{user}']")
+            if not row.empty:
+                level = UserExpList.loc[UserExpList[key]
+                                        == user, 'Level'].item()
+            await ctx.channel.send(f'{user} さんのレベルは{int(level)}です')
+        except Exception as e:
+            print('error: UserExpList not read...')
+            if Debug:
+                print(e.args)
+
+
+# Nextコマンド処理 ----------
+@bot.command()
+async def next(ctx):
+    if greetingParam.IsNextCommand:
+        user = ctx.author.name.lower()
+        key = 'UserName'
+        value = 'MessageCount'
+        count = 0
+        nextCount = 0
+        nextLevel = 0
+        # ユーザーがユーザーメッセージ数リストに存在する場合は、次レベルのコメント数から現在のコメント数の差を取得
+        try:
+            row = UserExpList.query(f"{key} in ['{user}']")
+            if not row.empty:
+                count = row[value].item()
+                for stepIndex, stepNum in enumerate(greetingParam.ExpTable):
+                    if count < stepNum:
+                        nextCount = int(stepNum - count)
+                        nextLevel = int(stepIndex + 1)
+                        break
+            else:
+                nextCount = greetingParam.ExpTable[0]
+                nextLevel = 1
+            await ctx.channel.send(f'{user} さんがレベル{nextLevel}にあがるには、\
+                                あと{nextCount}のコメント数が必要です')
+        except Exception as e:
+            print('error: UserExpList not read...')
+            if Debug:
+                print(e.args)
 
 
 #####################################
