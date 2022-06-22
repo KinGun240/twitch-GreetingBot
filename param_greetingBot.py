@@ -3,8 +3,10 @@
 # 音声・効果音のボリュームは、0~100の範囲で指定して下さい。
 
 # 無視ユーザーリスト
+# 本リストに設定されたユーザーのコメントは無視します
 IgnoreUsersList = ['Nightbot', 'StreamElements', 'moobot']
 # 無視テキストリスト
+# 本リストに設定されたテキストの含まれているメッセージは無視します
 IgnoreTextList = ['http']
 
 # コメントログ保存のON/OFF
@@ -74,16 +76,20 @@ IsNextCommand = True
 # battleコマンドのON/OFF
 IsBattleCommand = True
 # battleによるモンスター出現時の音声のON/OFF
-IsPlaySoundBattleEncounter = True
+IsPlaySoundEncounter = True
 # battleによるモンスター出現時の音声ファイル
-BattleEncounterSound = 'tm2_bush001.wav'
+EncounterSound = 'tm2_bush001.wav'
 # battleによるモンスター出現時の音声のボリューム
-BattleEncounterVolume = 80
-# battleによる勝利時の音声ファイル
+EncounterVolume = 80
+# battleによる戦闘勝利時の音声のON/OFF
+IsPlaySoundBattleWin = True
+# battleによる戦闘勝利時の音声ファイル
 BattleWinSound = 'tm2_quiz000good.wav'
-# battleによる勝利時の音声のボリューム
+# battleによる戦闘勝利時の音声のボリューム
 BattleWinVolume = 100
-# battleによる敗北時の音声ファイル
+# battleによる戦闘敗北時の音声のON/OFF
+IsPlaySoundBattleLose = True
+# battleによる戦闘敗北時の音声ファイル
 BattleLoseSound = 'tm2_quiz002bad.wav'
-# battleによる敗北時の音声のボリューム
+# battleによる戦闘敗北時の音声のボリューム
 BattleLoseVolume = 100
