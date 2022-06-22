@@ -2,27 +2,32 @@
 # This software is released under the MIT License, see LICENSE.
 
 from twitchio.ext import commands
-from playsound import playsound
+# from playsound import playsound
+import pygame.mixer
 
-from shutil import rmtree
-import os
-import glob
-import csv
-import importlib
-import pandas as pd
 import sys
+import os
+import time
 import signal
+import glob
+import pandas as pd
+import importlib
 import unicodedata
+import csv
+from shutil import rmtree
+
+import nDnDICE
 
 Debug = True
 
 # バージョン
-ver = '1.2.0'
+ver = '1.3.0'
 
 # 固定値
 CommentLogFile = "commentLog.csv"
 UserExpFile = "userExpList.csv"
-ErrorLogFile = 'errorLog.csv'
+MonsterFile = "monsterList.csv"
+ErrorLogFile = "errorLog.csv"
 
 # 各種初期設定 #####################################
 # bot用コンフィグの読み込み
@@ -68,7 +73,7 @@ except Exception as e:
 
 
 # 内部変数の設定 ----------
-# ユーザー経験値リストの読み込み
+# ユーザーコメント数リストの読み込み
 try:
     UserExpList = pd.read_csv(f"./data/{UserExpFile}")
     print(f"Read {UserExpFile}")
@@ -89,6 +94,27 @@ try:
 except Exception as e:
     print(e)
     print('Please check [param_greetingBot.py] and put it with GreetingBot')
+    input()
+
+# モンスターリストの読み込み
+try:
+    MonsterList = pd.read_csv(f"./data/{MonsterFile}")
+    print(f"Read {MonsterFile}")
+    print(f'MonsterList:\n{MonsterList}')
+except Exception as e:
+    print(e)
+    print(f'Please check [{MonsterFile}] and put it with data folder')
+    input()
+
+# モンスター出現の最大値を設定
+try:
+    MonsterMaxAppearance = 0
+    for appearance in MonsterList['Appearance']:
+        MonsterMaxAppearance += appearance
+    print(f"MaxAppearance:{MonsterMaxAppearance}")
+except Exception as e:
+    print(e)
+    print(f'Please check [{MonsterFile}] and put it with data folder')
     input()
 
 # 初見ユーザーリストの初期化
@@ -112,6 +138,9 @@ except Exception as e:
     print(e)
     print('Please check [param_greetingBot.py] and put it with GreetingBot')
     input()
+
+# 音量初期設定
+pygame.mixer.init(frequency=44100)
 
 
 # bot処理 #####################################
@@ -143,8 +172,8 @@ async def event_message(ctx):
     user = ctx.author.name.lower()
     name = ctx.author.display_name
     msg = ctx.content
-    time = (pd.Timestamp(ctx.timestamp, unit='s', tz='UTC')
-            ).tz_convert('Asia/Tokyo')
+    uptime = (pd.Timestamp(ctx.timestamp, unit='s', tz='UTC')
+              ).tz_convert('Asia/Tokyo')
     # isMod = ctx.author.is_mod
     # is_Sub = ctx.author.is_subscriber
 
@@ -153,7 +182,7 @@ async def event_message(ctx):
     await bot.handle_commands(ctx)
     if ctx.content.startswith('!') or ctx.echo or user == bot.nick:
         return
-    print(f'\nTIME:{time}\nUSER:{user}\nMSG:{msg}')
+    print(f'\nTIME:{uptime}\nUSER:{user}\nMSG:{msg}')
 
     # ユーザーが無視ユーザーリストに含まれる場合は処理終了
     if user in IgnoreUserList:
@@ -242,14 +271,17 @@ async def event_message(ctx):
     # 各フラグ状態に応じて音声出力
     try:
         if onFirstMsg and greetingParam.IsPlaySoundGreeting:
-            playsound(f"./sound/{greetingParam.GreetingSound}", True)
+            volume = setLimit(greetingParam.GreetingVolume, 0, 100) / 100.0
+            playSoundpg(f"./sound/{greetingParam.GreetingSound}", volume)
             print(f'BotSound:{greetingParam.GreetingSound}')
         elif onComment:
-            playsound(f"./sound/{greetingParam.CommentSound}", True)
+            volume = setLimit(greetingParam.CommentVolume, 0, 100) / 100.0
+            playSoundpg(f"./sound/{greetingParam.CommentSound}", volume)
             print(f'BotSound:{greetingParam.CommentSound}')
 
         if onLevelup and greetingParam.IsPlaySoundLevelup:
-            playsound(f"./sound/{greetingParam.LevelupSound}", True)
+            volume = setLimit(greetingParam.LevelupVolume, 0, 100) / 100.0
+            playSoundpg(f"./sound/{greetingParam.LevelupSound}", volume)
             print(f'BotSound:{greetingParam.LevelupSound}')
     except Exception as e:
         print('sound error: Please check [config.py] and sound folder...')
@@ -262,7 +294,7 @@ async def event_message(ctx):
         if greetingParam.IsSaveCommentsFile:
             with open(CommentLogFile, 'a') as commentsFile:
                 writer = csv.writer(commentsFile)
-                writer.writerow([time, user, msg])
+                writer.writerow([uptime, user, msg])
                 commentsFile.close()
     except Exception as e:
         print(f'file error: [{CommentLogFile}] can not save...')
@@ -349,7 +381,91 @@ async def next(ctx):
                 print(e.args)
 
 
-#####################################
+# Battleコマンド処理 ----------
+@bot.command()
+async def battle(ctx):
+    if greetingParam.IsBattleCommand:
+        enemy = '無'
+        monsterLife = 999
+        user = ctx.author.name.lower()
+        userKey = 'UserName'
+        level = 0
+        damage = 0
+
+        try:
+            # モンスター最大出現値の面数のダイスを1回振り、結果から出現させるモンスターを決定する
+            mDice = nDnDICE.nDn(f'1d{MonsterMaxAppearance}')
+            if mDice is not None:
+                selectNum = int(mDice[2])
+                print(f'モンスター選出のダイス：{mDice[0]}、出目:{mDice[1]}、合計:{selectNum}')
+                for row in MonsterList.itertuples():
+                    selectNum -= row.Appearance
+                    if selectNum <= 0:
+                        enemy = row.MonsterName
+                        monsterLife = row.Life
+                        break
+                print(f'モンスター：{enemy}、体力:{monsterLife}')
+                await ctx.channel.send(f'敵の{enemy} があらわれた！')
+                if greetingParam.IsPlaySoundBattleStart:
+                    time.sleep(0.5)
+                    vol = setLimit(greetingParam.BattleStartVol, 0, 100) / 100.0
+                    playSoundpg(f"./sound/{greetingParam.BattleStartSound}", vol)
+
+            # ユーザーがユーザーメッセージ数リストに存在する場合はLevelを取得
+            # levelの値の回数だけ6面ダイスを振り、結果を攻撃力とする
+            row = UserExpList.query(f"{userKey} in ['{user}']")
+            if not row.empty:
+                level = UserExpList.loc[UserExpList[userKey]
+                                        == user, 'Level'].item()
+            if level > 0:
+                dice = f'{level}d6'
+            else:
+                dice = '1d1'
+            uDice = nDnDICE.nDn(dice)
+            if uDice is not None:
+                damage = int(uDice[2])
+                print(f'{user} さんダイス：{uDice[0]}、出目:{uDice[1]}、合計:{damage}')
+                await ctx.send(f'{user} の攻撃！ {enemy} に{damage}のダメージ！')
+
+            # 勝敗
+            if damage >= monsterLife:
+                print(f'{user} is Win. damage:{damage}, life:{monsterLife}')
+                await ctx.send(f'{user} は{enemy} を倒した！')
+                time.sleep(1.5)
+                vol = setLimit(greetingParam.BattleWinVolume, 0, 100) / 100
+                playSoundpg(f"./sound/{greetingParam.BattleWinSound}", vol)
+            else:
+                print(f'{user} is Lose. damage:{damage}, life:{monsterLife}')
+                await ctx.send(f'相手の{enemy} の反撃！ {user} は負けてしまった・・・')
+                time.sleep(1.5)
+                vol = setLimit(greetingParam.BattleLoseVolume, 0, 100) / 100
+                playSoundpg(f"./sound/{greetingParam.BattleLoseSound}", vol)
+        except Exception as e:
+            print('error: MonsterList or UserExpList or param_greetingBot not read...')
+            if Debug:
+                print(e.args)
+
+
+# 汎用関数 #####################################
+# 入力値を上限・下限の飽和値に制限する -------------
+def setLimit(input, min, max):
+    if input < min:
+        return min
+    if input > max:
+        return max
+    return input
+
+
+# pygameを利用して音を鳴らす ----------
+def playSoundpg(filename, volume):
+    if filename:
+        if not volume:
+            volume = 1.0
+        pygame.mixer.music.load(filename)
+        pygame.mixer.music.set_volume(volume)
+        pygame.mixer.music.play()
+
+
 # マルチバイト文字を判別して文字列の長さを返す処理 -------------
 def count_text(message):
     # 文字列長カウント用の変数を定義
