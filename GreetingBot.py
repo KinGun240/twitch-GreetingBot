@@ -3,9 +3,12 @@
 
 from twitchio.ext import commands
 import pygame.mixer
+# import tkinter as tk
+# import tkinter.ttk as ttk
 
 import sys
 import os
+# import threading
 import time
 import signal
 import glob
@@ -20,13 +23,13 @@ import nDnDICE
 Debug = False
 
 # バージョン
-ver = '1.3.0'
+ver = '1.3.1'
 
 # 固定値
+ErrorLogFile = "errorLog.csv"
 CommentLogFile = "commentLog.csv"
 UserExpFile = "userExpList.csv"
 MonsterFile = "monsterList.csv"
-ErrorLogFile = "errorLog.csv"
 
 # 各種初期設定 #####################################
 # bot用コンフィグの読み込み
@@ -162,6 +165,17 @@ async def event_ready():
         print(f'{CommentLogFile}にコメント保存を開始します')
 
 
+# チャンネルポイント時処理 ----------
+@bot.event
+async def event_pubsub_channel_points(ctx):
+    try:
+        print("channel point!")
+    except Exception as e:
+        print('...')
+        if Debug:
+            print(e.args)
+
+
 # メッセージ受信時処理 ----------
 @bot.event
 async def event_message(ctx):
@@ -203,7 +217,7 @@ async def event_message(ctx):
     global UserExpList
     key = 'UserName'
     value = 'MessageCount'
-    # ユーザーがユーザーコメント数リストに存在する場合はMessageCountを１追加
+    # ユーザーがユーザーコメント数リストに存在する場合はMessageCountを1追加
     # 存在しない場合はユーザーコメント数リストに追加
     count = 1
     try:
@@ -315,6 +329,7 @@ async def exp(ctx):
     if not greetingParam.IsExpCommand:
         return
 
+    name = ctx.author.display_name
     user = ctx.author.name.lower()
     key = 'UserName'
     value = 'MessageCount'
@@ -324,7 +339,9 @@ async def exp(ctx):
         row = UserExpList.query(f"{key} in ['{user}']")
         if not row.empty:
             count = row[value].item()
-        await ctx.channel.send(f'{user} さんのコメント数は{int(count)}です')
+        else:
+            print(f"{user}が{UserExpFile}に存在しません")
+        await ctx.channel.send(f'{name} さんのコメント数は{int(count)}です')
     except Exception as e:
         print('error: UserExpList not read...')
         if Debug:
@@ -337,6 +354,7 @@ async def level(ctx):
     if not greetingParam.IsLevelCommand:
         return
 
+    name = ctx.author.display_name
     user = ctx.author.name.lower()
     key = 'UserName'
     level = 0
@@ -345,7 +363,9 @@ async def level(ctx):
         row = UserExpList.query(f"{key} in ['{user}']")
         if not row.empty:
             level = UserExpList.loc[UserExpList[key] == user, 'Level'].item()
-        await ctx.channel.send(f'{user} さんのレベルは{int(level)}です')
+        else:
+            print(f"{user}が{UserExpFile}に存在しません")
+        await ctx.channel.send(f'{name} さんのレベルは{int(level)}です')
     except Exception as e:
         print('error: UserExpList not read...')
         if Debug:
@@ -358,6 +378,7 @@ async def next(ctx):
     if not greetingParam.IsNextCommand:
         return
 
+    name = ctx.author.display_name
     user = ctx.author.name.lower()
     key = 'UserName'
     value = 'MessageCount'
@@ -377,7 +398,7 @@ async def next(ctx):
         else:
             nextCount = greetingParam.ExpTable[0]
             nextLevel = 1
-        await ctx.channel.send(f'{user} さんがレベル{nextLevel}にあがるには、\
+        await ctx.channel.send(f'{name} さんがレベル{nextLevel}にあがるには、\
                                 あと{nextCount}のコメント数が必要です')
     except Exception as e:
         print('error: UserExpList not read...')
@@ -393,29 +414,33 @@ async def battle(ctx):
 
     enemy = '無'
     monsterLife = 999
-    user = ctx.author.name.lower()
-    userKey = 'UserName'
     level = 0
     damage = 0
+    mes = ""
+    name = ctx.author.display_name
+    user = ctx.author.name.lower()
+    userKey = 'UserName'
     try:
         # モンスター最大出現値の面数のダイスを1回振り、結果から出現させるモンスターを決定する
-        mDice = nDnDICE.nDn(f'1d{MonsterMaxAppearance}')
+        mDice = nDnDICE.nDn(f"1d{MonsterMaxAppearance}")
         if mDice is not None:
             selectNum = int(mDice[2])
-            print(f'モンスター選出のダイス：{mDice[0]}、出目:{mDice[1]}、合計:{selectNum}')
+            print(f"モンスター選出のダイス：{mDice[0]}、出目:{mDice[1]}、合計:{selectNum}")
             for row in MonsterList.itertuples():
                 selectNum -= row.Appearance
                 if selectNum <= 0:
                     enemy = row.MonsterName
                     monsterLife = row.Life
                     break
-            print(f'モンスター：{enemy}、体力:{monsterLife}')
-            await ctx.channel.send(f'敵の{enemy} があらわれた！')
-            if greetingParam.IsPlaySoundEncounter:
-                time.sleep(0.5)
-                vol = setLimit(greetingParam.EncounterVolume, 0, 100) / 100.0
-                playSoundpg(f"./sound/{greetingParam.EncounterSound}", vol)
+        else:
+            print('モンスター選出のダイスがありませんでした')
+        print(f"選出モンスター：{enemy}、体力:{monsterLife}")
+        mes = f'{enemy}があらわれた！'
+    except Exception as e:
+        print('error: Please check MonsterList')
+        print(e.args)
 
+    try:
         # ユーザーがユーザーメッセージ数リストに存在する場合はLevelを取得
         # levelの値の回数だけ6面ダイスを振り、結果を攻撃力とする
         row = UserExpList.query(f"{userKey} in ['{user}']")
@@ -429,28 +454,35 @@ async def battle(ctx):
         uDice = nDnDICE.nDn(dice)
         if uDice is not None:
             damage = int(uDice[2])
-            print(f'{user} さんダイス：{uDice[0]}、出目:{uDice[1]}、合計:{damage}')
-            await ctx.send(f'{user} の攻撃！ {enemy} に{damage}のダメージ！')
+        else:
+            damage = 0
+        print(f"{user} さんダイス：{uDice[0]}、出目:{uDice[1]}、合計:{damage}")
+        mes = f"{mes} {name} の攻撃！ {enemy}に{damage}のダメージ！"
+    except Exception as e:
+        print('error: Please check UserExpList')
+        print(e.args)
 
+    try:
         # 勝敗
         if damage >= monsterLife:
             print(f'{user} is Win. damage:{damage}, life:{monsterLife}')
-            await ctx.send(f'{user} は{enemy} を倒した！')
+            await ctx.channel.send(f"{mes} {name} は{enemy} を倒した！")
+            time.sleep(0.5)
             if greetingParam.IsPlaySoundBattleWin:
-                time.sleep(1)
                 vol = setLimit(greetingParam.BattleWinVolume, 0, 100) / 100
                 playSoundpg(f"./sound/{greetingParam.BattleWinSound}", vol)
         else:
             print(f'{user} is Lose. damage:{damage}, life:{monsterLife}')
-            await ctx.send(f'相手の{enemy} の反撃！ {user} は負けてしまった・・・')
+            await ctx.channel.send(f"{mes} 相手の{enemy} の反撃！ {name} は負けてしまった・・・")
+            time.sleep(0.5)
             if greetingParam.IsPlaySoundBattleLose:
-                time.sleep(1)
                 vol = setLimit(greetingParam.BattleLoseVolume, 0, 100) / 100
                 playSoundpg(f"./sound/{greetingParam.BattleLoseSound}", vol)
+        print('')
+        time.sleep(1.5)
     except Exception as e:
-        print('error: Please check MonsterList,UserExpList,param_greetingBot')
-        if Debug:
-            print(e.args)
+        print('error: Please check param_greetingBot, or Twitch messege limit')
+        print(e.args)
 
 
 # 汎用関数 #####################################
@@ -547,7 +579,7 @@ def main():
         # 以前に生成された _MEI フォルダを削除する
         CLEANMEIFOLDERS()
 
-        # bot
+        # bot起動
         bot.run()
 
     except Exception as e:

@@ -75,11 +75,11 @@ IsNextCommand = True
 
 # battleコマンドのON/OFF
 IsBattleCommand = True
-# battleによるモンスター出現時の音声のON/OFF
+# battleによるモンスター出現時の音声のON/OFF...使えません
 IsPlaySoundEncounter = True
-# battleによるモンスター出現時の音声ファイル
+# battleによるモンスター出現時の音声ファイル...使えません
 EncounterSound = 'tm2_bush001.wav'
-# battleによるモンスター出現時の音声のボリューム
+# battleによるモンスター出現時の音声のボリューム...使えません
 EncounterVolume = 80
 # battleによる戦闘勝利時の音声のON/OFF
 IsPlaySoundBattleWin = True
