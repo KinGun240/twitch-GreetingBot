@@ -13,6 +13,8 @@ import time
 import signal
 import glob
 import pandas as pd
+import random
+import re
 import importlib
 import unicodedata
 import csv
@@ -30,8 +32,12 @@ ErrorLogFile = "errorLog.csv"
 CommentLogFile = "commentLog.csv"
 UserExpFile = "userExpList.csv"
 MonsterFile = "monsterList.csv"
+pattern = '\d{1,2}d\d{1,3}|\d{1,2}D\d{1,3}'
+diceSplit = 'd|D'
 
 # 各種初期設定 #####################################
+print(f"GreetingBot ver is {ver}")
+
 # bot用コンフィグの読み込み
 try:
     sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
@@ -412,14 +418,14 @@ async def battle(ctx):
     if not greetingParam.IsBattleCommand or MonsterMaxAppearance == 0:
         return
 
+    name = ctx.author.display_name
+    user = ctx.author.name.lower()
+    key = 'UserName'
+    mes = ""
     enemy = '無'
     monsterLife = 999
     level = 0
     damage = 0
-    mes = ""
-    name = ctx.author.display_name
-    user = ctx.author.name.lower()
-    userKey = 'UserName'
     try:
         # モンスター最大出現値の面数のダイスを1回振り、結果から出現させるモンスターを決定する
         mDice = nDnDICE.nDn(f"1d{MonsterMaxAppearance}")
@@ -443,12 +449,11 @@ async def battle(ctx):
     try:
         # ユーザーがユーザーメッセージ数リストに存在する場合はLevelを取得
         # levelの値の回数だけ6面ダイスを振り、結果を攻撃力とする
-        row = UserExpList.query(f"{userKey} in ['{user}']")
+        row = UserExpList.query(f"{key} in ['{user}']")
         if not row.empty:
-            level = UserExpList.loc[UserExpList[userKey]
-                                    == user, 'Level'].item()
+            level = UserExpList.loc[UserExpList[key] == user, 'Level'].item()
         if level > 0:
-            dice = f'{level}d6'
+            dice = f"{level}d6"
         else:
             dice = '1d1'
         uDice = nDnDICE.nDn(dice)
@@ -486,6 +491,52 @@ async def battle(ctx):
 
 
 # 汎用関数 #####################################
+# 対象の文字列かどうか
+def judge_nDn(src):
+    repatter = re.compile(pattern)
+    result = repatter.fullmatch(src)
+    if result is not None:
+        return True
+    elif src == '1d114514' or src == '1D114514':
+        return True
+    return False
+
+
+# 何面ダイスを何回振るか -------------
+def split_nDn(src):
+    return re.split(diceSplit, src)
+
+
+# ダイスを振る -------------
+def role_nDn(src):
+    result = []
+    sum_dice = 0
+    role_index = split_nDn(src)
+    role_count = int(role_index[0])
+    nDice = int(role_index[1])
+
+    for i in range(role_count):
+        tmp = random.randint(1, nDice)
+        result.append(tmp)
+        sum_dice = sum_dice + tmp
+
+    is1dice = True if role_count == 1 else False
+
+    return result, sum_dice, is1dice
+
+
+# 戻り値：ダイス、出目、合計 -------------
+def nDn(text):
+    if judge_nDn(text):
+        result, sum_dice, is1dice = role_nDn(text)
+        if is1dice:
+            return text, str(sum_dice), str(sum_dice)
+        else:
+            return text, str(result), str(sum_dice)
+    else:
+        return None
+
+
 # 入力値を上限・下限の飽和値に制限する -------------
 def setLimit(input, min, max):
     if input < min:
