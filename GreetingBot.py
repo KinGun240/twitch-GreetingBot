@@ -20,8 +20,6 @@ import unicodedata
 import csv
 from shutil import rmtree
 
-import nDnDICE
-
 Debug = False
 
 # バージョン
@@ -428,7 +426,7 @@ async def battle(ctx):
     damage = 0
     try:
         # モンスター最大出現値の面数のダイスを1回振り、結果から出現させるモンスターを決定する
-        mDice = nDnDICE.nDn(f"1d{MonsterMaxAppearance}")
+        mDice = nDn(f"1d{MonsterMaxAppearance}")
         if mDice is not None:
             selectNum = int(mDice[2])
             print(f"モンスター選出のダイス：{mDice[0]}、出目:{mDice[1]}、合計:{selectNum}")
@@ -452,16 +450,19 @@ async def battle(ctx):
         row = UserExpList.query(f"{key} in ['{user}']")
         if not row.empty:
             level = UserExpList.loc[UserExpList[key] == user, 'Level'].item()
+            level = int(level)
+        else:
+            print(f"{user}が{UserExpFile}に存在しません")
         if level > 0:
             dice = f"{level}d6"
         else:
             dice = '1d1'
-        uDice = nDnDICE.nDn(dice)
+        uDice = nDn(dice)
         if uDice is not None:
             damage = int(uDice[2])
+            print(f"{user} さんダイス：{uDice[0]}、出目:{uDice[1]}、合計:{damage}")
         else:
             damage = 0
-        print(f"{user} さんダイス：{uDice[0]}、出目:{uDice[1]}、合計:{damage}")
         mes = f"{mes} {name} の攻撃！ {enemy}に{damage}のダメージ！"
     except Exception as e:
         print('error: Please check UserExpList')
